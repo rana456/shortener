@@ -1,0 +1,32 @@
+meta {
+  name: 1. Create short URL (201)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/short
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "url": "{{longUrl}}",
+    "suggestions": []
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://127.0.0.1:8000
+  longUrl: https://www.hellointerview.com/learn/system-design/in-a-hurry/introduction
+}
+
+script:post-response {
+  bru.setVar("shortUrl", res.body.short_url);
+}
+
+tests {
+  test("201 Created", () => expect(res.status).to.equal(201));
+  test("8-char code", () => expect(res.body.code).to.have.length(8));
+}

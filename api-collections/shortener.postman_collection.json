@@ -1,0 +1,98 @@
+{
+  "info": {
+    "name": "URL Shortener",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "longUrl", "value": "https://www.example.com/blog/post-1" },
+    { "key": "shortUrl", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Create short URL (201)",
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test('201 Created', () => pm.response.to.have.status(201));",
+          "const b = pm.response.json();",
+          "pm.test('8-char code', () => pm.expect(b.code).to.have.length(8));",
+          "pm.collectionVariables.set('shortUrl', b.short_url);"
+        ]}
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/short",
+        "body": { "mode": "raw", "raw": "{\n  \"url\": \"{{longUrl}}\",\n  \"suggestions\": []\n}" }
+      }
+    },
+    {
+      "name": "2. Same URL again -> suggestions (409)",
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+          "pm.test('has suggestions', () => pm.expect(pm.response.json().suggestions).to.not.be.empty);"
+        ]}
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/short",
+        "body": { "mode": "raw", "raw": "{\n  \"url\": \"{{longUrl}}\",\n  \"suggestions\": [\"mine\", \"blog\"]\n}" }
+      }
+    },
+    {
+      "name": "3. Claim a suggested prefix (201)",
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test('201 Created', () => pm.response.to.have.status(201));",
+          "pm.test('prefixed code', () => pm.expect(pm.response.json().code).to.match(/^mine-/));"
+        ]}
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/short",
+        "body": { "mode": "raw", "raw": "{\n  \"url\": \"{{longUrl}}\",\n  \"prefix\": \"mine\"\n}" }
+      }
+    },
+    {
+      "name": "4. Get original URL (200)",
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test('200 OK', () => pm.response.to.have.status(200));",
+          "pm.test('matches long URL', () => pm.expect(pm.response.json().original_url).to.eql(pm.collectionVariables.get('longUrl')));"
+        ]}
+      }],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/getOriginalurl?url={{shortUrl}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["getOriginalurl"],
+          "query": [{ "key": "url", "value": "{{shortUrl}}" }]
+        }
+      }
+    },
+    {
+      "name": "5. Unknown code (404)",
+      "event": [{
+        "listen": "test",
+        "script": { "exec": ["pm.test('404', () => pm.response.to.have.status(404));"] }
+      }],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/getOriginalurl?url=nope1234",
+          "host": ["{{baseUrl}}"],
+          "path": ["getOriginalurl"],
+          "query": [{ "key": "url", "value": "nope1234" }]
+        }
+      }
+    }
+  ]
+}

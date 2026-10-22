@@ -1,0 +1,23 @@
+meta {
+  name: 3. Claim a suggested prefix (201)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/short
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "url": "{{longUrl}}",
+    "prefix": "mine"
+  }
+}
+
+tests {
+  test("201 Created", () => expect(res.status).to.equal(201));
+  test("prefixed code", () => expect(res.body.code).to.match(/^mine-/));
+}

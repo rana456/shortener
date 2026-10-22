@@ -1,0 +1,24 @@
+meta {
+  name: 4. Get original URL (200)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/getOriginalurl?url=yTjb51YO
+  body: none
+  auth: none
+}
+
+params:query {
+  url: yTjb51YO
+}
+
+vars:pre-request {
+  baseUrl: http://127.0.0.1:8000
+}
+
+tests {
+  test("200 OK", () => expect(res.status).to.equal(200));
+  test("matches long URL", () => expect(res.body.original_url).to.equal(bru.getEnvVar("longUrl")));
+}

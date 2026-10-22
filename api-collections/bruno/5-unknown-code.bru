@@ -1,0 +1,19 @@
+meta {
+  name: 5. Unknown code (404)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/getOriginalurl?url=nope1234
+  body: none
+  auth: none
+}
+
+params:query {
+  url: nope1234
+}
+
+tests {
+  test("404", () => expect(res.status).to.equal(404));
+}

@@ -1,0 +1,23 @@
+meta {
+  name: 2. Same URL again -> suggestions (409)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/short
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "url": "{{longUrl}}",
+    "suggestions": ["mine", "blog"]
+  }
+}
+
+tests {
+  test("409 Conflict", () => expect(res.status).to.equal(409));
+  test("has suggestions", () => expect(res.body.suggestions).to.not.be.empty);
+}
